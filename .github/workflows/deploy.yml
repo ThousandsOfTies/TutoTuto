@@ -38,24 +38,15 @@ jobs:
       - name: Configure Git for private repos
         run: |
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          
+
       - name: Clone dependencies
         run: |
           make clone
 
-          # Checkout exact commit from VERSIONS file
-          CORE_COMMIT=$(grep "home-teacher-core=" VERSIONS | cut -d'=' -f2)
+          # Checkout exact commits from VERSIONS file
           DRAWING_COMMIT=$(grep "drawing-common=" VERSIONS | cut -d'=' -f2)
-
-          if [ ! -z "$CORE_COMMIT" ]; then
-            echo "Checking out home-teacher-core at $CORE_COMMIT"
-            cd repos/home-teacher-core
-            git fetch --unshallow 2>/dev/null || git fetch origin
-            git checkout $CORE_COMMIT
-            cd ../..
-          else
-            echo "WARNING: No commit hash found for home-teacher-core in VERSIONS"
-          fi
+          COMMON_COMMIT=$(grep "home-teacher-common=" VERSIONS | cut -d'=' -f2)
+          APP_COMMIT=$(grep "tutotuto-app=" VERSIONS | cut -d'=' -f2)
 
           if [ ! -z "$DRAWING_COMMIT" ]; then
             echo "Checking out drawing-common at $DRAWING_COMMIT"
@@ -65,32 +56,49 @@ jobs:
             cd ../..
           fi
 
+          if [ ! -z "$COMMON_COMMIT" ]; then
+            echo "Checking out home-teacher-common at $COMMON_COMMIT"
+            cd repos/home-teacher-common
+            git fetch --unshallow 2>/dev/null || git fetch origin
+            git checkout $COMMON_COMMIT
+            cd ../..
+          else
+            echo "WARNING: No commit hash found for home-teacher-common in VERSIONS"
+          fi
+
+          if [ ! -z "$APP_COMMIT" ]; then
+            echo "Checking out tutotuto-app at $APP_COMMIT"
+            cd repos/tutotuto-app
+            git fetch --unshallow 2>/dev/null || git fetch origin
+            git checkout $APP_COMMIT
+            cd ../..
+          else
+            echo "WARNING: No commit hash found for tutotuto-app in VERSIONS"
+          fi
+
       - name: Install dependencies
         run: |
-          # Install drawing-common dependencies
           cd repos/drawing-common
           npm install
           cd ../..
-          
-          # Install home-teacher-core dependencies (clean install)
-          cd repos/home-teacher-core
-          rm -rf node_modules package-lock.json
-          npm install --legacy-peer-deps
+
+          cd repos/home-teacher-common
+          npm install
           cd ../..
 
-      # ここを変更：make build一発で済ませる
+          cd repos/tutotuto-app
+          npm install
+          cd ../..
+
       - name: Build Application
-        run: |
-          rm -rf repos/home-teacher-core/dist
-          make build
+        run: make build
         env:
           NODE_ENV: production
 
-      # ここも変更：make buildの結果は dist に出力されるのでそれを deploy へ
       - name: Move build to deploy directory
         run: |
           mkdir -p deploy
-          cp -r repos/home-teacher-core/dist/* deploy/
+          cp -r repos/tutotuto-app/dist/* deploy/
 
       - name: Add .nojekyll file
         run: touch deploy/.nojekyll
