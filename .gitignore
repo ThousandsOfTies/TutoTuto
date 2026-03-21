@@ -38,5 +38,6 @@ package-lock.json
 PDFs/
 
 # Cloned repositories (managed by Makefile)
-# すべてのソースコードはrepos/配下で管理される
-repos/
+# repos/フォルダ自体は表示、個別リポジトリをignore
+repos/drawing-common/
+repos/home-teacher-core/
