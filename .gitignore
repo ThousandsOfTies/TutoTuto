@@ -41,3 +41,5 @@ PDFs/
 # repos/フォルダ自体は表示、個別リポジトリをignore
 repos/drawing-common/
 repos/home-teacher-core/
+repos/home-teacher-common/
+repos/tutotuto-app/
