@@ -1,4 +1,4 @@
-# HomeTeacher プロジェクト Makefile
+# TutoTuto プロジェクト Makefile
 # 依存リポジトリを自動cloneして統合ビルドを行う
 
 .PHONY: help setup clone pull install build clean dev test status update-versions
@@ -13,7 +13,8 @@ REPOS_DIR := repos
 # 形式: リポジトリ名|GitHubユーザー/リポジトリ|ブランチ
 REPOSITORIES := \
 	drawing-common|ThousandsOfTies/drawing-common|main \
-	home-teacher-core|ThousandsOfTies/home-teacher-core|main
+	home-teacher-common|ThousandsOfTies/home-teacher-common|main \
+	tutotuto-app|ThousandsOfTies/tutotuto-app|main
 
 # リポジトリ情報を解析するヘルパー関数
 define get_repo_info
@@ -24,7 +25,8 @@ REPO_NAMES := $(foreach repo,$(REPOSITORIES),$(call get_repo_info,$(repo),1))
 
 # パス定義
 DRAWING_COMMON := $(REPOS_DIR)/drawing-common
-HOME_TEACHER_CORE := $(REPOS_DIR)/home-teacher-core
+HOME_TEACHER_COMMON := $(REPOS_DIR)/home-teacher-common
+TUTOTUTO_APP := $(REPOS_DIR)/tutotuto-app
 
 # ============================================
 # カラー出力
@@ -44,7 +46,7 @@ NC     := \033[0m
 
 ## help: ヘルプを表示
 help:
-	@echo "$(BLUE)HomeTeacher プロジェクト$(NC)"
+	@echo "$(BLUE)TutoTuto プロジェクト$(NC)"
 	@echo ""
 	@echo "$(GREEN)利用可能なコマンド:$(NC)"
 	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/^## /  make /'
@@ -92,8 +94,10 @@ pull:
 install: clone
 	@echo "$(BLUE)📦 $(DRAWING_COMMON) の依存関係をインストール中...$(NC)"
 	@cd $(DRAWING_COMMON) && npm install
-	@echo "$(BLUE)📦 $(HOME_TEACHER_CORE) の依存関係をインストール中...$(NC)"
-	@cd $(HOME_TEACHER_CORE) && npm install
+	@echo "$(BLUE)📦 $(HOME_TEACHER_COMMON) の依存関係をインストール中...$(NC)"
+	@cd $(HOME_TEACHER_COMMON) && npm install
+	@echo "$(BLUE)📦 $(TUTOTUTO_APP) の依存関係をインストール中...$(NC)"
+	@cd $(TUTOTUTO_APP) && npm install
 	@echo "$(GREEN)✅ インストール完了$(NC)"
 
 ## build-repos: 依存リポジトリをビルド（drawing-commonのみ）
@@ -104,14 +108,14 @@ build-repos:
 
 ## build: すべてビルド（依存リポジトリ + アプリケーション）
 build: build-repos
-	@echo "$(BLUE)🏠 HomeTeacher をビルド中...$(NC)"
-	@cd $(HOME_TEACHER_CORE) && npm run build
+	@echo "$(BLUE)🏠 TutoTuto をビルド中...$(NC)"
+	@cd $(TUTOTUTO_APP) && npm run build
 	@echo "$(GREEN)✅ すべてのビルドが完了しました$(NC)"
 
 ## dev: 開発モードで起動
 dev: clone install
 	@echo "$(BLUE)🚀 開発サーバーを起動中...$(NC)"
-	@cd $(HOME_TEACHER_CORE) && npm run dev
+	@cd $(TUTOTUTO_APP) && npm run dev
 
 ## clean: ビルド成果物を削除（依存リポジトリは保持）
 clean:
@@ -135,7 +139,7 @@ clean-all:
 status:
 	@echo "$(BLUE)📊 Git Status$(NC)"
 	@echo ""
-	@echo "$(YELLOW)HomeTeacher (メタリポジトリ):$(NC)"
+	@echo "$(YELLOW)TutoTuto (メタリポジトリ):$(NC)"
 	@git status -sb
 	@$(foreach name,$(REPO_NAMES), \
 		if [ -d "$(REPOS_DIR)/$(name)/.git" ]; then \
