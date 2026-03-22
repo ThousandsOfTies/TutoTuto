@@ -15,12 +15,20 @@ else
     echo "drawing-common=" >> VERSIONS
 fi
 
-# home-teacher-core
-if [ -d "$REPOS_DIR/home-teacher-core/.git" ]; then
-    COMMIT=$(cd "$REPOS_DIR/home-teacher-core" && git rev-parse HEAD)
-    echo "home-teacher-core=$COMMIT" >> VERSIONS
+# home-teacher-common
+if [ -d "$REPOS_DIR/home-teacher-common/.git" ]; then
+    COMMIT=$(cd "$REPOS_DIR/home-teacher-common" && git rev-parse HEAD)
+    echo "home-teacher-common=$COMMIT" >> VERSIONS
 else
-    echo "home-teacher-core=" >> VERSIONS
+    echo "home-teacher-common=" >> VERSIONS
+fi
+
+# tutotuto-app
+if [ -d "$REPOS_DIR/tutotuto-app/.git" ]; then
+    COMMIT=$(cd "$REPOS_DIR/tutotuto-app" && git rev-parse HEAD)
+    echo "tutotuto-app=$COMMIT" >> VERSIONS
+else
+    echo "tutotuto-app=" >> VERSIONS
 fi
 
 echo "VERSIONSファイルを更新しました:"
