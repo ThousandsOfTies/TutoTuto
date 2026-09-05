@@ -37,9 +37,4 @@ package-lock.json
 # PDF files (managed in repos/)
 PDFs/
 
-# Cloned repositories (managed by Makefile)
-# repos/フォルダ自体は表示、個別リポジトリをignore
-repos/drawing-common/
-repos/home-teacher-core/
-repos/home-teacher-common/
-repos/tutotuto-app/
+# Submodules are tracked by Git; do not ignore repos/ entries here.

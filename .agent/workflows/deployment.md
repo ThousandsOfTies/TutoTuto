@@ -1,292 +1,52 @@
 ---
-description: デプロイスクリプトと手順（GitHub Pages & Cloud Run）
+description: TutoTutoのGitHub Pages・API構成とローカル起動
 ---
 
-# TutoTuto - デプロイガイド
+# TutoTuto デプロイガイド
 
-このガイドでは、TutoTutoアプリをGitHub Pages（フロントエンド）とGoogle Cloud Run（バックエンドAPI）にデプロイする手順を説明します。
+## フロントエンド
 
-## 目次
+公開設定先は `https://thousandsofties.github.io/TutoTuto/`。
+`.github/workflows/deploy.yml` が `main` のpush、または手動実行で動く。
+GitHub PagesのSourceにはGitHub Actionsを使用する。
 
-1. [フロントエンドのデプロイ（GitHub Pages）](#フロントエンドのデプロイgithub-pages)
-2. [バックエンドAPIのデプロイ（Google Cloud Run）](#バックエンドapiのデプロイgoogle-cloud-run)
-3. [ローカル開発環境の設定](#ローカル開発環境の設定)
-4. [トラブルシューティング](#トラブルシューティング)
+1. 固定済みサブモジュールを再帰的にcheckout。
+2. Node.js 20とnpmで `make install`。
+3. `make build` でビルド。
+4. `repos/tutotuto-app/dist` をPagesの成果物として公開。
 
----
+`VITE_API_URL` はWorkflowで指定し、Firebase設定は `VITE_FIREBASE_*` のRepository secretsからビルドへ渡る。
+現在のAPI接続先は `https://hometeacher-api-736494768812.asia-northeast1.run.app`。
 
-## フロントエンドのデプロイ（GitHub Pages）
+サブモジュールの変更は [更新手順](deployment-workflow.md) に従い、子のpush後にメタのgitlinkを更新する。
+PWAは `registerType: 'prompt'` であり、更新通知から適用する。AI採点はオフラインでは利用できない。
 
-### GitHub Actions による自動デプロイ（推奨）
+## APIサーバー
 
-#### 初回設定手順
+フロントのWorkflowではAPIを公開しない。現行接続先のCloud Runサービス `hometeacher-api` はDoriDoriも共有する。
+ローカル実装は `repos/tutotuto-app/server/index.ts`、ヘルスチェックは `GET /api/health`。
 
-1. **GitHubリポジトリの設定**
-   - GitHub上でリポジトリ `https://github.com/ThousandsOfTies/HomeTeacher` を開く
-   - `Settings` → `Pages` に移動
-   - `Source` を **GitHub Actions** に変更
+アプリ内にCloud Run用スクリプトとDockerfileがあるが、現行サーバーは兄弟の
+`home-teacher-common/src/constants/grading.ts` をimportする。
+アプリ単体をコンテキストにした既存Dockerfileはそのファイルを含めないため、そのまま再デプロイできる構成とは扱わない。
+APIを更新する際は、共有ファイルを含むビルドコンテキストと既存サービスの環境設定を整備・検証すること。
 
-2. **GitHub Actions のパーミッション設定**
-   - `Settings` → `Actions` → `General` に移動
-   - `Workflow permissions` で **Read and write permissions** を選択
-   - `Save` をクリック
+APIベースURL末尾に `/api` を付けない。フロントが各エンドポイントのパスを付加する。
 
-3. **変更をコミット・プッシュ**
-   ```bash
-   git add .
-   git commit -m "feat: PWA対応とGitHub Pages設定を追加"
-   git push origin main
-   ```
+## ローカル起動
 
-4. **デプロイの確認**
-   - リポジトリの `Actions` タブを開く
-   - "Deploy to GitHub Pages" ワークフローが実行中であることを確認
-   - 完了後、以下のURLでアクセス可能になります：
-     - **https://thousandsofties.github.io/HomeTeacher/**
-
-#### 以降の更新方法
-
-mainブランチにプッシュするだけで自動的にデプロイされます：
+メタで初回 `make setup` 後、別ターミナルで実行：
 
 ```bash
-# 1. 各サブリポジトリで変更をコミット・プッシュ
-cd repos/drawing-common
-git add . && git commit -m "feat: 新機能を追加"
-git push origin main
-
-cd ../home-teacher-core
-git add . && git commit -m "feat: 新機能を追加"
-git push origin main
-
-# 2. メタリポジトリでバージョンを更新
-cd ../..
-make update-versions
-
-# 3. メタリポジトリの変更をコミット・プッシュ
-git add .
-git commit -m "chore: サブリポジリのバージョンを更新"
-git push origin main
+make dev
+make dev-server
 ```
 
-**注意**: `make update-versions` は各サブリポジトリの最新コミットIDを `VERSIONS` ファイルに記録します。これにより、メタリポジトリがサブリポジトリのどのバージョンと連携しているかを追跡できます。
-
-### 手動デプロイ（gh-pagesブランチ使用）
-
-```bash
-npm run deploy
-```
-
-**注意**: この方法を使う場合は、GitHub PagesのSourceを `gh-pages` ブランチに設定してください。
-
-### PWA機能について
-
-このアプリはPWA（Progressive Web App）として動作します：
-
-- **オフライン対応**: Service Workerによるキャッシング
-- **インストール可能**: ホーム画面に追加可能
-- **スタンドアロンモード**: アプリのように動作
-- **自動更新**: `autoUpdate` モードで新バージョンを自動取得
-
----
-
-## バックエンドAPIのデプロイ（Google Cloud Run）
-
-### 前提条件
-
-1. **Google Cloud Platform (GCP) アカウント**
-   - https://cloud.google.com/ でアカウントを作成
-   - 新規アカウントは$300の無料クレジットあり
-
-2. **Google Cloud CLI (gcloud)**
-   - https://cloud.google.com/sdk/docs/install からインストール
-
-3. **Docker Desktop**
-   - https://www.docker.com/products/docker-desktop からインストール
-
-4. **Gemini API キー**
-   - https://makersuite.google.com/app/apikey から取得
-
-### 1. GCPプロジェクトの作成
-
-```bash
-# GCPコンソールでプロジェクトを作成
-# プロジェクトID（例: hometeacher-123456）をメモ
-
-# プロジェクトを設定
-gcloud config set project YOUR_PROJECT_ID
-
-# 必要なAPIを有効化
-gcloud services enable run.googleapis.com
-gcloud services enable containerregistry.googleapis.com
-gcloud services enable secretmanager.googleapis.com
-```
-
-### 2. Gemini API キーをSecret Managerに保存
-
-```bash
-# APIキーをシークレットとして作成
-echo -n "YOUR_GEMINI_API_KEY" | gcloud secrets create GEMINI_API_KEY --data-file=-
-
-# Cloud Runサービスアカウントにシークレットへのアクセス権を付与
-PROJECT_NUMBER=$(gcloud projects describe YOUR_PROJECT_ID --format="value(projectNumber)")
-gcloud secrets add-iam-policy-binding GEMINI_API_KEY \
-  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor"
-```
-
-### 3. デプロイスクリプトの設定
-
-`deploy-cloud-run.sh` を編集して、プロジェクトIDを設定：
-
-```bash
-PROJECT_ID="your-gcp-project-id"  # ← あなたのプロジェクトIDに置き換え
-```
-
-### 4. デプロイの実行
-
-```bash
-# スクリプトに実行権限を付与
-chmod +x deploy-cloud-run.sh
-
-# デプロイ実行
-./deploy-cloud-run.sh
-```
-
-### 5. デプロイ後の確認
-
-デプロイが完了すると、サービスURLが表示されます：
-```
-https://hometeacher-api-xxxxxxxxxx-an.a.run.app
-```
-
-このURLをメモしてください。
-
-### 6. 動作確認
-
-```bash
-# ヘルスチェック
-curl https://YOUR_SERVICE_URL/api/health
-```
-
-## フロントエンドの設定更新
-
-### 1. GitHub Secretsにバックエンドのurlを追加
-
-1. GitHubリポジトリページに移動
-2. **Settings** → **Secrets and variables** → **Actions**
-3. **New repository secret** をクリック
-4. 以下を追加：
-   - Name: `VITE_API_URL`
-   - Value: `https://YOUR_SERVICE_URL/api`（Cloud RunのURL）
-
-### 2. GitHub Actionsワークフローの更新
-
-`.github/workflows/deploy.yml` を編集：
-
-```yaml
-      - name: Build
-        run: npm run build
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-```
-
-### 3. 変更をコミット＆プッシュ
-
-```bash
-git add .
-git commit -m "feat: Add Cloud Run backend deployment"
-git push origin main
-```
-
-GitHub Actionsが自動的にフロントエンドを再ビルド＆デプロイします。
-
-## ローカル開発環境の設定
-
-### バックエンド
-
-```bash
-# .env ファイルを作成
-cat > .env << EOF
-GEMINI_API_KEY=your-api-key-here
-PORT=3003
-EOF
-
-# サーバー起動
-npm run dev:server
-```
-
-### フロントエンド
-
-```bash
-# .env.local ファイルを作成
-cat > .env.local << EOF
-VITE_API_URL=http://localhost:3003/api
-EOF
-
-# フロントエンド起動
-npm run dev
-```
-
-または、両方同時に起動：
-
-```bash
-npm run dev:all
-```
-
-## コスト管理
-
-### Cloud Run の料金
-
-- **無料枠**: 月 200万リクエスト
-- **従量課金**: リクエスト数、CPU/メモリ使用量に基づく
-- **推定コスト**: 小規模利用なら月$5以下
-
-### 料金を抑えるコツ
-
-1. **最小インスタンス数を0に設定**（デフォルト）
-   - 使用がない時は課金されない
-2. **メモリ/CPUを最適化**
-   - 現在の設定: 512Mi メモリ、1 CPU
-3. **タイムアウトを適切に設定**
-   - 現在の設定: 60秒
-
-## トラブルシューティング
-
-### バックエンドAPIが応答しない
-
-```bash
-# ログを確認
-gcloud run logs read hometeacher-api --region asia-northeast1 --limit 50
-
-# サービスの詳細を確認
-gcloud run services describe hometeacher-api --region asia-northeast1
-```
-
-### CORS エラーが発生する
-
-サーバーコード（`server/index.ts`）のCORS設定を確認：
-
-```typescript
-app.use(cors({
-  origin: ['https://thousandsofties.github.io'],
-  credentials: true
-}))
-```
-
-### Gemini API キーが機能しない
-
-```bash
-# シークレットの値を確認
-gcloud secrets versions access latest --secret="GEMINI_API_KEY"
-
-# Cloud Runサービスがシークレットにアクセスできるか確認
-gcloud run services describe hometeacher-api \
-  --region asia-northeast1 \
-  --format 'value(spec.template.spec.containers[0].env)'
-```
-
-## 参考リンク
-
-- [Google Cloud Run ドキュメント](https://cloud.google.com/run/docs)
-- [GitHub Pages ドキュメント](https://docs.github.com/pages)
-- [Gemini API ドキュメント](https://ai.google.dev/docs)
+フロントは既定 `http://localhost:3000`、APIは `http://localhost:3003`。
+フロントの設定は `repos/tutotuto-app/.env.local`。
+API設定は `repos/tutotuto-app/.env`。Gemini APIキーはここに置く。
+Makeなしでは `repos/tutotuto-app` で `npm run dev:all` を使用できる。
+`VITE_API_URL=http://localhost:3003` と必要な `VITE_FIREBASE_*` を設定する。
+秘密キーを `VITE_*` として公開しない。
+
+ログは起動ターミナルに出力される。接続に失敗したら、API起動・ベースURL・CORS・Firebaseプロジェクトの対応を確認する。

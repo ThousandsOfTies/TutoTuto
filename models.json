@@ -1,8 +1,8 @@
 {
     "models": [
         {
-            "id": "gemini-3.6-flash",
-            "name": "Gemini 3.6 Flash",
+            "id": "gemini-3.8-flash",
+            "name": "Gemini 3.8 Flash",
             "description": "最新世代・高速・高精度モデル（推奨）"
         },
         {
@@ -36,5 +36,5 @@
             "description": "超高速・低コストモデル"
         }
     ],
-    "default": "gemini-3.6-flash"
+    "default": "gemini-3.8-flash"
 }

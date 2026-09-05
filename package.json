@@ -1,16 +1,15 @@
 {
-  "name": "home-teacher-meta",
+  "name": "tutotuto-meta",
   "version": "1.0.0",
   "private": true,
-  "description": "HomeTeacher meta-repository for integrated build and deployment",
+  "description": "TutoTuto meta-repository for integrated build and deployment",
   "scripts": {
-    "build:drawing-common": "cd repos/drawing-common && pnpm install && pnpm build",
-    "build:home-teacher-core": "cd repos/home-teacher-core && pnpm install",
-    "build:kids": "cd repos/home-teacher-core && pnpm run build:kids",
-    "build:discuss": "cd repos/home-teacher-core && pnpm run build:discuss",
-    "build:all": "cd repos/home-teacher-core && pnpm run build:all",
-    "dev": "cd repos/home-teacher-core && pnpm run dev",
-    "dev:discuss": "cd repos/home-teacher-core && pnpm run dev:discuss"
+    "build:drawing-common": "npm --prefix repos/drawing-common run build",
+    "build": "npm run build:drawing-common && npm --prefix repos/tutotuto-app run build",
+    "dev": "npm --prefix repos/tutotuto-app run dev",
+    "dev:server": "npm --prefix repos/tutotuto-app run dev:server",
+    "dev:all": "npm --prefix repos/tutotuto-app run dev:all",
+    "typecheck": "npm --prefix repos/tutotuto-app run typecheck"
   },
   "engines": {
     "node": ">=18.0.0"

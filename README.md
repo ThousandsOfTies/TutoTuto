@@ -1,150 +1,103 @@
-# HomeTeacher
+# TutoTuto
 
+PDF教材への手書き解答をAIで採点し、SNS報酬につなげるオリジナルの学習アプリ。DoriDoriとCopiCopiの派生元です。
 
-**メタリポジトリ - 統合管理・ビルド・デプロイ専用**
+公開用フロントエンドの設定先：[TutoTuto](https://thousandsofties.github.io/TutoTuto/)
 
-AI-powered learning support app with handwriting and PDF annotation features.
+## 現在の機能
 
-## 🎯 Versions
+- PDF・画像の取り込み、教材一覧、画像のPDF化と補正。
+- PDFページの表示・A/B操作、ペン・消しゴム・テキスト入力。
+- 問題と解答の範囲を選択してAI採点し、正誤・解説を表示。
+- 採点履歴、SNSリンク・利用時間設定、Googleログイン、課金連携。
 
-### 📚 TutoTuto
-AI採点とSNS報酬機能付き。
+DoriDoriの追加質問パネルやCopiCopiの模写評価とは別のアプリとして管理する。
+使い方は [USAGE.md](USAGE.md)、公開手順は [デプロイガイド](.agent/workflows/deployment.md) を参照。
 
-**[Launch TutoTuto →](https://thousandsofties.github.io/HomeTeacher/)**
+## 構成
 
-HomeTeacher/ (このリポジトリ - メタリポジトリ)
-├── package.json        # メタデータのみ
-├── Makefile            # 統合ビルド管理
-├── Repos.mk            # 依存リポジトリ定義
-├── .github/workflows/  # GitHub Pages自動デプロイ
-└── repos/              # 依存リポジトリ（自動clone、gitignore）
-    ├── drawing-common/      # 描画共通ライブラリ
-    └── home-teacher-core/   # HomeTeacherアプリ本体
+```text
+TutoTuto/
+├── .gitmodules              # サブモジュールと追従ブランチ
+├── .github/workflows/       # GitHub Pagesへのデプロイ
+├── Makefile                 # 統合ビルド・開発コマンド
+└── repos/
+    ├── drawing-common/      # Canvas描画基盤
+    ├── home-teacher-common/ # 教材管理・PDF表示・保存・認証・API通信
+    └── tutotuto-app/ # アプリ固有のReact UI・Express API
 ```
 
-### 📦 依存リポジトリ
+依存コミットはGitサブモジュールのgitlinkで固定する。`VERSIONS`、`Repos.mk`、`make update-versions` は使用しない。
+アプリのVite/TypeScriptエイリアスは兄弟サブモジュールの `src` を参照する。
 
-| リポジトリ | 説明 |
-|-----------|------|
-| [drawing-common](https://github.com/ThousandsOfTies/drawing-common) | 描画機能の共通ライブラリ |
-| [home-teacher-core](https://github.com/ThousandsOfTies/home-teacher-core) | HomeTeacherアプリケーション本体 |
+## データとAPI
 
-## 🚀 クイックスタート
+- PDF・書き込み・設定・採点履歴は端末のIndexedDB `TutoTutoDB` に保存する。
+- 共通ライブラリの既定DB名は `TutoTutoDB`。各アプリのVite設定で上書きし、同一オリジン上でもデータを分離する。
+- Googleログインとユーザー・課金情報はFirebase Authentication／Firestoreを使用する。
+- 採点はブラウザからExpress APIを経由してGeminiへ送信する。
+- 現行のフロント接続先は `.github/workflows/deploy.yml` の `VITE_API_URL`。TutoTutoとDoriDoriは同じCloud Run APIを使用する。
+- PWAは更新通知から適用する方式。AI採点や認証にはネットワーク接続が必要。
 
-### 初回セットアップ
+## ローカル開発
+
+Node.js 20（CIと同じメジャーバージョン）、npm、Git、GNU MakeとUnix系シェルを使用する。
+WindowsのPowerShellでは下記のnpmコマンドを直接実行できる。MakeコマンドはGNU Makeのある環境で実行する。
+PowerShellの実行ポリシーで `npm.ps1` が拒否される場合は、`npm` を `npm.cmd` に読み替える。
 
 ```bash
-git clone https://github.com/ThousandsOfTies/HomeTeacher.git
-cd HomeTeacher
+git clone --recurse-submodules https://github.com/ThousandsOfTies/TutoTuto.git
+cd TutoTuto
 make setup
+make dev
+# 別ターミナルでAPIを起動
+make dev-server
+```
 
-### 開発
+Makeなしの初期設定は、メタで `git submodule update --init --recursive`、
+3つのサブモジュールそれぞれで `npm install`、
+`repos/drawing-common` で `npm run build` を実行する。
 
-make dev              # 開発モードで起動
-make install          # すべての依存関係をインストール
-make clean            # ビルド成果物を削除
-make clean-all        # 完全削除（repos/含む）
-make status           # すべてのリポジトリのgitステータス表示
-
-## 📤 GitHub Pagesへのデプロイ
-
-### 自動デプロイ
-
-mainブランチにpushすると、GitHub Actionsが自動的にビルド＆デプロイを実行：
-
-1. 依存リポジトリを自動clone
-2. 各リポジトリの依存関係をインストール（pnpm使用）
-3. すべてのリポジトリをビルド
-4. GitHub Pagesにデプロイ
-
-### 初回デプロイ設定
-
-1. GitHubリポジトリの **Settings** → **Pages**
-2. **Source** を **GitHub Actions** に変更
-3. **Settings** → **Actions** → **General**
-4. **Workflow permissions** で **Read and write permissions** を選択
-
-詳細は [GITHUB_PAGES_SETUP.md](GITHUB_PAGES_SETUP.md) を参照。
-
-## 🛠️ トラブルシューティング
-
-### ビルドエラーが出る
+`repos/tutotuto-app` 内では次を使用する。
 
 ```bash
-make clean-all
-make setup
+npm run dev          # Vite: http://localhost:3000
+npm run dev:server   # Express: http://localhost:3003
+npm run dev:all      # 両方を起動
+npm run build       # フロントエンドの本番ビルド
+npm run typecheck
 ```
 
-### 依存リポジトリが見つからない
+サーバーが読む `repos/tutotuto-app/.env` に `GEMINI_API_KEY` を設定する。
+認証・課金を試す場合はサーバーのFirebase/Stripe設定も必要。
+フロント用の `.env.local` には `VITE_FIREBASE_*` と必要に応じて
+`VITE_API_URL=http://localhost:3003` を設定する。ベースURL末尾に `/api` を付けない。
+APIキーなどの秘密情報を `VITE_*` に入れない。
+
+## ビルド・依存更新・公開
+
+`make build` は描画ライブラリとフロントエンドをビルドする。
+`main` へのpushでGitHub Actionsが固定済みサブモジュールをcheckoutし、npmでビルド、
+`repos/tutotuto-app/dist` をGitHub Pagesに公開する。Cloud Run APIは別デプロイ。
+
+サブリポジトリの変更を先にcommit・pushし、その後メタで対象gitlinkをcommit・pushする。
 
 ```bash
-make clone
-make install
+# サブリポジトリの変更・検証・pushが完了した後、メタで実行
+git diff --submodule
+git add repos/tutotuto-app
+git diff --cached --submodule
+git commit -m "Update TutoTuto app"
+git push origin main
 ```
 
-### 依存ライブラリの変更が反映されない
+共通ライブラリの場合も同様に対象の `repos/home-teacher-common` または `repos/drawing-common` を更新する。
+サブモジュールは初期化後にdetached HEADになり得るため、編集前に作業ブランチと状態を確認する。
 
-```bash
-make pull
-make install
-```
+- `make init`：メタに固定されたコミットを復元。
+- `make update`：全サブモジュールを追従ブランチの最新へ移動。更新内容を確認してgitlinkをコミットする。
+- `make status`：メタと各サブモジュールの状態を表示。
+- `make clean`：生成されたビルド成果物を削除。サブモジュールは残す。
 
-## 🔧 技術スタック
-
-### メタリポジトリ
-- **Make**: タスク管理
-- **pnpm**: パッケージ管理
-- **GitHub Actions**: CI/CD
-
-### home-teacher-core
-- **React 18 + TypeScript**
-- **Vite**: ビルドツール
-- **Fabric.js**: Canvas描画
-- **PDF.js**: PDF表示
-- **Google Gemini API**: AI採点
-- **PWA** (vite-plugin-pwa)
-
-### drawing-common
-- TypeScript
-- Canvas API
-- React Hooks
-
-## 🔧 新しい依存リポジトリの追加
-
-[Repos.mk](Repos.mk) を編集：
-
-```makefile
-REPOSITORIES := \
-    drawing-common|ThousandsOfTies/drawing-common|main \
-    home-teacher-core|ThousandsOfTies/home-teacher-core|main \
-    new-library|ThousandsOfTies/new-library|main
-```
-
-形式: `リポジトリ名|GitHubユーザー/リポジトリ|ブランチ`
-
-## 🤝 コントリビューション
-
-### メタリポジトリへの変更
-
-1. このリポジトリをフォーク
-2. Makefile や Repos.mk を編集
-3. Pull Requestを作成
-
-### アプリケーションへの変更
-
-1. **home-teacher-core** リポジトリで作業
-2. 変更をコミット＆プッシュ
-3. このメタリポジトリで `make pull` して最新版を取得
-
-## 📄 ライセンス
-
-MIT License
-
-## 🆘 サポート
-
-問題が発生した場合は、各リポジトリのIssuesで報告：
-
-- [メタリポジトリの問題](https://github.com/ThousandsOfTies/HomeTeacher/issues)
-- [アプリの問題](https://github.com/ThousandsOfTies/home-teacher-core/issues)
-- [描画機能の問題](https://github.com/ThousandsOfTies/drawing-common/issues)
+`make build` などは `init` に依存するため、gitlink更新前の新しいコミットの検証は各サブリポジトリで直接行う。
  
