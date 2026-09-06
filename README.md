@@ -80,6 +80,10 @@ APIキーなどの秘密情報を `VITE_*` に入れない。
 `main` へのpushでGitHub Actionsが固定済みサブモジュールをcheckoutし、npmでビルド、
 `repos/tutotuto-app/dist` をGitHub Pagesに公開する。Cloud Run APIは別デプロイ。
 
+Cloud Runの更新はアプリ内の `npm run deploy:server` を使用する。
+共通コードを含む専用ソースを生成してからデプロイする。
+詳しくは [APIデプロイ手順](repos/tutotuto-app/server/DEPLOYMENT.md) を参照。
+
 サブリポジトリの変更を先にcommit・pushし、その後メタで対象gitlinkをcommit・pushする。
 
 ```bash
