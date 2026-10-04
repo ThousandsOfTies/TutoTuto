@@ -26,10 +26,12 @@ PWAは `registerType: 'prompt'` であり、更新通知から適用する。AI�
 フロントのWorkflowではAPIを公開しない。現行接続先のCloud Runサービス `hometeacher-api` はDoriDoriも共有する。
 ローカル実装は `repos/tutotuto-app/server/index.ts`、ヘルスチェックは `GET /api/health`。
 
-アプリ内にCloud Run用スクリプトとDockerfileがあるが、現行サーバーは兄弟の
-`home-teacher-common/src/constants/grading.ts` をimportする。
-アプリ単体をコンテキストにした既存Dockerfileはそのファイルを含めないため、そのまま再デプロイできる構成とは扱わない。
-APIを更新する際は、共有ファイルを含むビルドコンテキストと既存サービスの環境設定を整備・検証すること。
+本番・stagingの公開元は `repos/tutotuto-app` に一本化する。DoriDori側の公開コマンドは誤上書きを防ぐため停止する。
+共有サーバーには採点 `/api/grade-work`、追加質問 `/api/ask-question`、本の質問 `/api/book/*` を含める。
+`npm run prepare:server` がサーバー、兄弟の共通採点定義、専用の依存定義・Dockerfileを `.cloud-run` にまとめる。
+`npm run deploy:server:staging` で3種類のAPIを検証してから `npm run deploy:server` で本番を更新する。
+両コマンドはソース準備を先に行い、`.env` や認証ファイルはアップロード用ソースへ含めない。
+詳細は [APIデプロイ手順](../../repos/tutotuto-app/server/DEPLOYMENT.md) を参照する。
 
 APIベースURL末尾に `/api` を付けない。フロントが各エンドポイントのパスを付加する。
 

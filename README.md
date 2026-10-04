@@ -9,9 +9,12 @@ PDF教材への手書き解答をAIで採点し、SNS報酬につなげるオリ
 - PDF・画像の取り込み、教材一覧、画像のPDF化と補正。
 - PDFページの表示・A/B操作、ペン・消しゴム・テキスト入力。
 - 問題と解答の範囲を選択してAI採点し、正誤・解説を表示。
+- 採点結果・解説の一部を囲んで追加質問し、Markdown・数式で回答を表示。
+- 学習範囲と追加質問の分岐を保存し、履歴から再開。
 - 採点履歴、SNSリンク・利用時間設定、Googleログイン、課金連携。
 
-DoriDoriの追加質問パネルやCopiCopiの模写評価とは別のアプリとして管理する。
+TutoTutoの追加質問は教材の採点結果を深掘りする機能。
+DoriDoriの本の本文を検索する読書用UI・索引機能、CopiCopiの模写評価はそれぞれのアプリで管理する。
 使い方は [USAGE.md](USAGE.md)、公開手順は [デプロイガイド](.agent/workflows/deployment.md) を参照。
 
 ## 構成
@@ -32,10 +35,11 @@ TutoTuto/
 
 ## データとAPI
 
-- PDF・書き込み・設定・採点履歴は端末のIndexedDB `TutoTutoDB` に保存する。
-- 共通ライブラリの既定DB名は `TutoTutoDB`。各アプリのVite設定で上書きし、同一オリジン上でもデータを分離する。
+- PDF・書き込み・設定・採点履歴・追加質問の分岐は端末のIndexedDB `TutoTutoDB` に保存する。
+- 共通ライブラリには既定DB名がなく、`VITE_INDEXED_DB_NAME` の指定が必須。各アプリのVite設定で明示し、同一オリジン上でもデータを分離する。未指定・空白のみの場合は起動時に例外になる。
 - Googleログインとユーザー・課金情報はFirebase Authentication／Firestoreを使用する。
 - 採点はブラウザからExpress APIを経由してGeminiへ送信する。
+- 採点は `/api/grade-work`、採点結果への追加質問は `/api/ask-question` を使う。追加質問には質問画像と直前の結果を送り、会話履歴全体やPDF全ページは送らない。
 - 現行のフロント接続先は `.github/workflows/deploy.yml` の `VITE_API_URL`。TutoTutoとDoriDoriは同じCloud Run APIを使用する。
 - PWAは更新通知から適用する方式。AI採点や認証にはネットワーク接続が必要。
 
@@ -80,8 +84,9 @@ APIキーなどの秘密情報を `VITE_*` に入れない。
 `main` へのpushでGitHub Actionsが固定済みサブモジュールをcheckoutし、npmでビルド、
 `repos/tutotuto-app/dist` をGitHub Pagesに公開する。Cloud Run APIは別デプロイ。
 
-Cloud Runの更新はアプリ内の `npm run deploy:server` を使用する。
-共通コードを含む専用ソースを生成してからデプロイする。
+共有Cloud Run APIの本番・stagingの公開元は `repos/tutotuto-app` に一本化する。
+共通コードと両アプリのAPIを含む専用ソースを生成し、`npm run deploy:server:staging` で検証してから `npm run deploy:server` で公開する。
+DoriDori側の公開コマンドは誤上書きを防ぐため停止する。
 詳しくは [APIデプロイ手順](repos/tutotuto-app/server/DEPLOYMENT.md) を参照。
 
 サブリポジトリの変更を先にcommit・pushし、その後メタで対象gitlinkをcommit・pushする。

@@ -20,6 +20,9 @@ description: TutoTutoの現在の構成・依存管理・データ互換性
 フロントは `.github/workflows/deploy.yml` の `VITE_API_URL` と `VITE_FIREBASE_*` を使用する。
 API実装は `repos/tutotuto-app/server/index.ts`、共通クライアントは `repos/home-teacher-common/src/services/api.ts`。
 現行接続先は `https://hometeacher-api-736494768812.asia-northeast1.run.app`。DoriDoriも同じAPIを使用する。
+本番・stagingの公開元は `repos/tutotuto-app` に一本化し、採点 `/api/grade-work`、
+TutoTutoの追加質問 `/api/ask-question`、DoriDoriの `/api/book/*` を保持する。
+DoriDoriのサーバー変更は必要なAPI部分を公開元へ反映する。アプリ固有のUIは自動的に共有しない。
 
 `VITE_API_URL` は `/api` を付けないベースURL。エンドポイント側で `/api/grade-work` などを追加する。
 接続先変更時はデプロイ設定、クライアント、サーバーのCORS、Firebaseプロジェクトの対応を確認する。
@@ -27,7 +30,8 @@ API実装は `repos/tutotuto-app/server/index.ts`、共通クライアントは 
 
 ## 保存・互換性
 
-IndexedDB名は `TutoTutoDB`。共通ライブラリの既定値 `TutoTutoDB` を各アプリのVite設定で指定・上書きする。
+IndexedDB名は `TutoTutoDB`。各アプリのVite設定で `VITE_INDEXED_DB_NAME` を明示する。
+共通ライブラリに既定DB名はなく、未指定・空白のみの場合は例外になる。
 DBは同一オリジン内でURLパスごとには分かれないため、派生アプリのDB名を統一しない。
 DB名・スキーマ変更は既存データの移行と後方互換性を確認する。
 

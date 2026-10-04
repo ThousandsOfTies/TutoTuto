@@ -13,6 +13,7 @@ TutoTutoは、教材への書き込み・AI採点・SNS報酬を扱うオリジ�
 旧 `C:\VibeCode` のパスを使用しない。このワークスペースには `TutoTutoDev` はない。
 別途 `tutotuto-app` の `dev` 環境を扱う場合は、そのチェックアウトとデプロイ設定を確認する。
 DoriDori・CopiCopi固有の機能をTutoTutoへ自動的に取り込まない。
+TutoTutoにも採点結果への追加質問がある。DoriDoriの本文索引・検索や読書用UIとは個別に管理する。
 
 ## 依存管理と修正先
 
@@ -61,12 +62,14 @@ git status --short --branch
 - `@thousands-of-ties/drawing-common` → `../drawing-common/src`
 
 マシン固有の絶対パスをエイリアスに追加しない。
-IndexedDB名は `TutoTutoDB`。DB名やスキーマを変更する場合は既存データの移行・互換性を検討する。
+IndexedDB名は `TutoTutoDB`。Vite設定で `VITE_INDEXED_DB_NAME` を明示する。共通ライブラリに既定DB名はなく、未指定・空白のみは例外になる。
+DB名やスキーマを変更する場合は既存データの移行・互換性を検討する。
 
 ## 起動・デプロイ
 
 - フロント：メタで `make dev`、または `repos/tutotuto-app` で `npm run dev`（Vite、既定3000）。
 - API：メタで `make dev-server`、または `repos/tutotuto-app` で `npm run dev:server`（Express、既定3003）。
+- TutoTutoとDoriDoriの共有Cloud Run APIは、本番・stagingとも `repos/tutotuto-app` から公開する。採点・追加質問・本の質問の各APIを保持し、DoriDori側から上書きしない。
 - APIキーはサーバー側のみ。`VITE_API_URL` はAPIのベースURLで、末尾に `/api` を付けない。
 - ログは起動ターミナルへ出力される。固定の `/tmp/proto-server.log` は作成されない。
 - メタの `main` へのpushでGitHub Actionsが固定済みサブモジュールをビルドし、GitHub Pagesへ公開する。
