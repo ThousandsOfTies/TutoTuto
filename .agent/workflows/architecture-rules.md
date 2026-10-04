@@ -18,7 +18,8 @@ description: TutoTutoの現在の構成・依存管理・データ互換性
 ## APIと認証
 
 フロントは `.github/workflows/deploy.yml` の `VITE_API_URL` と `VITE_FIREBASE_*` を使用する。
-API実装は `repos/tutotuto-app/server/index.ts`、共通クライアントは `repos/home-teacher-common/src/services/api.ts`。
+API実装は `repos/tutotuto-app/server/src/index.ts`、共通クライアントは `repos/home-teacher-common/src/services/api.ts`。
+サーバーの依存・型確認・Dockerfileは `server/` にまとめ、`src/` と生成物の `dist/` を分ける。
 現行接続先は `https://hometeacher-api-736494768812.asia-northeast1.run.app`。DoriDoriも同じAPIを使用する。
 本番・stagingの公開元は `repos/tutotuto-app` に一本化し、採点 `/api/grade-work`、
 TutoTutoの追加質問 `/api/ask-question`、DoriDoriの `/api/book/*` を保持する。

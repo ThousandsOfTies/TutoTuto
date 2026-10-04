@@ -69,6 +69,8 @@ DB名やスキーマを変更する場合は既存データの移行・互換性
 
 - フロント：メタで `make dev`、または `repos/tutotuto-app` で `npm run dev`（Vite、既定3000）。
 - API：メタで `make dev-server`、または `repos/tutotuto-app` で `npm run dev:server`（Express、既定3003）。
+- サーバーのソースは `repos/tutotuto-app/server/src`。依存・ビルド設定・Dockerfileは `server/` にまとめ、`npm ci`・`npm run dev`・`npm run build` をそのディレクトリで実行できる。
+- API設定は `server/.env` を優先し、互換用にアプリ直下の `.env` も読む。実行環境の変数を上書きしない。
 - TutoTutoとDoriDoriの共有Cloud Run APIは、本番・stagingとも `repos/tutotuto-app` から公開する。採点・追加質問・本の質問の各APIを保持し、DoriDori側から上書きしない。
 - APIキーはサーバー側のみ。`VITE_API_URL` はAPIのベースURLで、末尾に `/api` を付けない。
 - ログは起動ターミナルへ出力される。固定の `/tmp/proto-server.log` は作成されない。

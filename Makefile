@@ -32,6 +32,7 @@ install: init
 	@cd $(DRAWING_COMMON) && npm install
 	@cd $(HOME_TEACHER_COMMON) && npm install
 	@cd $(TUTOTUTO_APP) && npm install
+	@npm ci --prefix $(TUTOTUTO_APP)/server
 
 ## build-repos: Build shared libraries
 build-repos: init
