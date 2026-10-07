@@ -116,3 +116,11 @@ git push origin main
 
 `make build` などは `init` に依存するため、gitlink更新前の新しいコミットの検証は各サブリポジトリで直接行う。
  
+
+## 日本語・英語の表示
+
+言語は画面の言語メニューで切り替えます。共通UIの文言は `repos/home-teacher-common/src/i18n/locales/ja.json` と `en.json`、TutoTuto固有の文言は `repos/tutotuto-app/src/i18n/locales/ja.json` と `en.json` で管理します。
+
+画面に固定文言を直書きせず、両言語に同じキー・差し込み項目を追加してください。ユーザーが入力した内容やAI回答そのものは翻訳対象に含めません。単独HTMLページもアプリの翻訳ファイルを使用し、公開時に自動コピーします。`public/locales` に別の翻訳を作成しないでください。
+
+アプリ内で `npm run test:i18n` を実行すると、翻訳キー・差し込み項目の一致と直書きを検査します。ビルド後の `npm run test:bundle` は、単独ページの翻訳が最新版で、オフライン用キャッシュにも含まれることを確認します。
