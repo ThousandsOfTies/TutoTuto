@@ -6,10 +6,11 @@ description: TutoTutoの現在の構成・依存管理・データ互換性
 
 ## 修正先と依存管理
 
-このメタリポジトリは `repos/tutotuto-app`、`repos/home-teacher-common`、`repos/drawing-common` をGitサブモジュールとして管理する。
+このメタリポジトリは `repos/tutotuto-app`、`repos/home-teacher-api`、`repos/home-teacher-common`、`repos/drawing-common` をGitサブモジュールとして管理する。
 定義は `.gitmodules`、使用コミットはgitlinkに記録する。`VERSIONS` は使用しない。
 
 - アプリ固有の修正は `repos/tutotuto-app`。
+- 共有APIの修正・検証・公開は `repos/home-teacher-api`。
 - 共通UI・保存・認証は `repos/home-teacher-common`。描画基盤は `repos/drawing-common`。
 - サブモジュール内で状態を確認し、編集前に作業ブランチを選ぶ。共通修正の反映先は `main`。
 - 変更したサブリポジトリの検証・commit・pushを先に済ませ、次にメタの該当gitlinkをcommit・pushする。
@@ -18,12 +19,12 @@ description: TutoTutoの現在の構成・依存管理・データ互換性
 ## APIと認証
 
 フロントは `.github/workflows/deploy.yml` の `VITE_API_URL` と `VITE_FIREBASE_*` を使用する。
-API実装は `repos/tutotuto-app/server/src/index.ts`、共通クライアントは `repos/home-teacher-common/src/services/api.ts`。
-サーバーの依存・型確認・Dockerfileは `server/` にまとめ、`src/` と生成物の `dist/` を分ける。
+API実装は `repos/home-teacher-api/src/index.ts`、共通クライアントは `repos/home-teacher-common/src/services/api.ts`。
+サーバーの依存・型確認・Dockerfile・専用CIはAPIリポジトリで管理する。本文要求の通信仕様はAPIの `contracts/` に置く。
 現行接続先は `https://hometeacher-api-736494768812.asia-northeast1.run.app`。DoriDoriも同じAPIを使用する。
-本番・stagingの公開元は `repos/tutotuto-app` に一本化し、採点 `/api/grade-work`、
+本番・stagingの公開元は `repos/home-teacher-api` に一本化し、採点 `/api/grade-work`、
 TutoTutoの追加質問 `/api/ask-question`、DoriDoriの `/api/book/*` を保持する。
-DoriDoriのサーバー変更は必要なAPI部分を公開元へ反映する。アプリ固有のUIは自動的に共有しない。
+両アプリのローカル起動も同じ共有APIを使い、サーバーのコピーを保持しない。アプリ固有のUIは自動的に共有しない。
 
 `VITE_API_URL` は `/api` を付けないベースURL。エンドポイント側で `/api/grade-work` などを追加する。
 接続先変更時はデプロイ設定、クライアント、サーバーのCORS、Firebaseプロジェクトの対応を確認する。

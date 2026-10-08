@@ -7,6 +7,7 @@ TutoTutoは、教材への書き込み・AI採点・SNS報酬を扱うオリジ�
 
 - メタリポジトリ：このディレクトリ（`main`）
 - アプリ：`repos/tutotuto-app`（`main`）
+- DoriDoriと共有するAPI：`repos/home-teacher-api`（`main`）
 - 共通UI・PDF表示・保存・認証：`repos/home-teacher-common`（`main`）
 - 描画基盤：`repos/drawing-common`（`main`）
 
@@ -21,6 +22,7 @@ TutoTutoにも採点結果への追加質問がある。DoriDoriの本文索引�
 `VERSIONS` と `make update-versions` は旧方式であり、使用しない。
 
 - TutoTuto固有の変更は `repos/tutotuto-app` に入れる。
+- 採点・追加質問・本文参照・認証・課金の共有APIは `repos/home-teacher-api` に入れる。アプリ側にサーバー実装を複製しない。
 - 共通UI・PDF表示・保存・認証は `repos/home-teacher-common`、描画基盤は `repos/drawing-common` に入れる。
 - 共通ライブラリを変更する際は、TutoTuto・DoriDori・CopiCopiで必要な互換性を確認する。各メタが固定するコミットは異なる場合がある。
 - サブモジュールは初期化直後にdetached HEADになり得る。変更前に状態を確認し、作業ブランチを選ぶ。
@@ -69,13 +71,14 @@ DB名やスキーマを変更する場合は既存データの移行・互換性
 
 - フロント：メタで `make dev`、または `repos/tutotuto-app` で `npm run dev`（Vite、既定3000）。
 - API：メタで `make dev-server`、または `repos/tutotuto-app` で `npm run dev:server`（Express、既定3003）。
-- サーバーのソースは `repos/tutotuto-app/server/src`。依存・ビルド設定・Dockerfileは `server/` にまとめ、`npm ci`・`npm run dev`・`npm run build` をそのディレクトリで実行できる。
-- API設定は `server/.env` を優先し、互換用にアプリ直下の `.env` も読む。実行環境の変数を上書きしない。
-- TutoTutoとDoriDoriの共有Cloud Run APIは、本番・stagingとも `repos/tutotuto-app` から公開する。採点・追加質問・本の質問の各APIを保持し、DoriDori側から上書きしない。
+- サーバーのソースは `repos/home-teacher-api/src`。依存・ビルド設定・Dockerfile・専用CIはAPIリポジトリで管理する。採点定義用にAPI内の `repos/home-teacher-common` を別途版固定する。
+- API設定は実行環境の変数、API直下 `.env` の順に優先する。アプリから起動した場合だけ、互換用のアプリ `server/.env` とアプリ直下 `.env` も読む。既存の秘密設定ファイルを移行時に削除しない。
+- 共有Cloud Run APIは、本番・stagingとも `repos/home-teacher-api` から公開する。アプリ側の旧公開コマンドは案内して停止する。公開したコミットはCloud Runの `git-sha` ラベルで記録する。
+- APIの更新はAPIの検証・commit・push・専用CI確認を先に行い、その後にアプリとメタのgitlinkを更新する。API公開時は既存フロントとの互換性を確認する。
 - APIキーはサーバー側のみ。`VITE_API_URL` はAPIのベースURLで、末尾に `/api` を付けない。
 - ログは起動ターミナルへ出力される。固定の `/tmp/proto-server.log` は作成されない。
 - メタの `main` へのpushでGitHub Actionsが固定済みサブモジュールをビルドし、GitHub Pagesへ公開する。
-- Cloud Run APIはフロントと別デプロイ。READMEと `repos/tutotuto-app/server/DEPLOYMENT.md` を参照する。
+- Cloud Run APIはフロントと別デプロイ。READMEと `repos/home-teacher-api/DEPLOYMENT.md` を参照する。
 
 ## 表示文言と翻訳
 

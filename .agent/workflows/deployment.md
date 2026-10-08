@@ -11,7 +11,7 @@ description: TutoTutoのGitHub Pages・API構成とローカル起動
 GitHub PagesのSourceにはGitHub Actionsを使用する。
 
 1. 固定済みサブモジュールを再帰的にcheckout。
-2. Node.js 20とnpmで `make install`。
+2. Node.js 20とnpmで `make install-frontend`。
 3. `make build` でビルド。
 4. `repos/tutotuto-app/dist` をPagesの成果物として公開。
 
@@ -24,14 +24,13 @@ PWAは `registerType: 'prompt'` であり、更新通知から適用する。AI�
 ## APIサーバー
 
 フロントのWorkflowではAPIを公開しない。現行接続先のCloud Runサービス `hometeacher-api` はDoriDoriも共有する。
-ローカル実装は `repos/tutotuto-app/server/src/index.ts`、ヘルスチェックは `GET /api/health`。
+サーバーのソースと公開元は独立リポジトリ `repos/home-teacher-api`、ヘルスチェックは `GET /api/health`。
 
-本番・stagingの公開元は `repos/tutotuto-app` に一本化する。DoriDori側の公開コマンドは誤上書きを防ぐため停止する。
-共有サーバーには採点 `/api/grade-work`、追加質問 `/api/ask-question`、本の質問 `/api/book/*` を含める。
-`npm run prepare:server` がサーバーの `src/`・型確認設定、兄弟の共通採点定義、専用の依存定義・`server/Dockerfile` を `.cloud-run` にまとめる。
-`npm run deploy:server:staging` で3種類のAPIを検証してから `npm run deploy:server` で本番を更新する。
-両コマンドはソース準備を先に行い、`.env` や認証ファイルはアップロード用ソースへ含めない。
-詳細は [APIデプロイ手順](../../repos/tutotuto-app/server/DEPLOYMENT.md) を参照する。
+両アプリでAPIのサブモジュールを固定し、アプリ側にはサーバーのコピーを保持しない。
+API専用CIで検証し、API側の `npm run deploy:staging`、動作確認、`npm run deploy:production` の順で公開する。
+旧アプリの公開コマンドは移行先を案内して停止する。公開したコミットはCloud Runの `git-sha` ラベルで記録する。
+APIの `prepare:deploy` は許可リストにあるソースだけを `.cloud-run` にまとめ、秘密情報を含めない。
+詳細は [API公開手順](https://github.com/ThousandsOfTies/home-teacher-api/blob/main/DEPLOYMENT.md) を参照。
 
 APIベースURL末尾に `/api` を付けない。フロントが各エンドポイントのパスを付加する。
 
@@ -46,7 +45,7 @@ make dev-server
 
 フロントは既定 `http://localhost:3000`、APIは `http://localhost:3003`。
 フロントの設定は `repos/tutotuto-app/.env.local`。
-API設定は `repos/tutotuto-app/server/.env`。実行環境の変数が最優先で、従来のアプリ直下 `.env` も互換用に読む。
+API設定は `repos/home-teacher-api/.env`。実行環境の変数が最優先で、アプリから起動した場合は従来のアプリ `server/.env` とアプリ直下 `.env` も互換用に読む。
 Makeなしでは `repos/tutotuto-app` で `npm run dev:all` を使用できる。
 `VITE_API_URL=http://localhost:3003` と必要な `VITE_FIREBASE_*` を設定する。
 秘密キーを `VITE_*` として公開しない。

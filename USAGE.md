@@ -20,7 +20,7 @@ AI採点にはネットワーク接続が必要。
 ## ローカルで開発する場合
 
 セットアップは [README](README.md#ローカル開発) を参照。
-API設定は `repos/tutotuto-app/server/.env` に置く。従来のアプリ直下 `.env` も互換用に読む。
+API設定は `repos/home-teacher-api/.env` に置く。アプリから起動した場合は、従来のアプリ `server/.env` とアプリ直下 `.env` も互換用に読む。
 フロント設定は `repos/tutotuto-app/.env.local` を使用する。
 
 ```bash
