@@ -1,6 +1,8 @@
 # TutoTuto
 
-PDF教材への手書き解答をAIで採点し、解説や追加質問で理解を深める学習アプリです。DoriDori・CopiCopiの派生元です。
+PDF教材への手書き解答をAIで採点し、解説や追加質問で理解を深める学習アプリです。
+
+https://github.com/user-attachments/assets/b6708bcf-ff26-4f1a-acc9-ae3132a7d0cf
 
 [TutoTutoを開く](https://thousandsofties.github.io/TutoTuto/) · [使い方](USAGE.md)
 
