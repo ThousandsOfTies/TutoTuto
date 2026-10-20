@@ -1,37 +1,49 @@
 # TutoTuto
 
-PDF教材への手書き解答をAIで採点し、解説や追加質問で理解を深める学習アプリです。
+**English** | [日本語](README.ja.md)
+
+**Study first. Scroll later.**
+
+TutoTuto is a learning app that connects worksheet practice with time for social media. Import a PDF or saved image, write your answers, and review AI feedback. After grading, open a social media link you have set up and keep track of time with the timer.
+
+[Open TutoTuto](https://thousandsofties.github.io/TutoTuto/) · [Usage guide (Japanese)](USAGE.md)
+
+## Introduction video
+
+45 seconds · English · Music, no narration
 
 https://github.com/user-attachments/assets/b6708bcf-ff26-4f1a-acc9-ae3132a7d0cf
 
-[TutoTutoを開く](https://thousandsofties.github.io/TutoTuto/) · [使い方](USAGE.md)
+[Try TutoTuto in your browser](https://thousandsofties.github.io/TutoTuto/)
 
-## 主な機能
+## Features
 
-- PDF・画像の取り込み、A/Bページ切替・左右分割、手書き・文字入力。
-- 問題と解答の範囲を選んでAI採点し、正誤・解説を表示。
-- 解説への追加質問、Markdown・数式の表示、質問の分岐と履歴の保存。
-- SNSリンク・利用時間設定、Googleログイン、課金連携、日本語・英語表示。
+- **Use your own materials:** import PDFs and saved image files. To use a paper handout, take a photo with your phone or tablet's camera app, save it, and import the image. TutoTuto does not take photos itself.
+- **Write on your worksheets:** use handwriting or text input, switch between A/B pages, and work with a split view.
+- **Check answers with AI:** select the area containing the question and your answer, then review correctness and explanations.
+- **Ask follow-up questions:** ask about an explanation, branch a conversation, and revisit saved history. Markdown and mathematical notation are supported.
+- **Move from study to social time:** open configured social media links after grading and follow the countdown timer. The timer tracks time; it does not block other apps on your device.
+- **Choose your language:** the app supports English and Japanese, Google sign-in, and paid-plan integration.
 
-教材・書き込み・履歴は端末内のIndexedDB `TutoTutoDB` に保存します。AI採点にはネットワーク接続が必要です。
+Materials, annotations, grading history, and follow-up questions are stored in your browser's IndexedDB database, `TutoTutoDB`. Clearing site data removes these records. AI grading requires an internet connection.
 
-## 構成
+## Repository structure
 
-このメタリポジトリが、Gitサブモジュールの使用コミットとビルド・公開を管理します。
+This repository pins its dependencies as Git submodules and manages the frontend build and deployment.
 
-| 場所 | 役割 |
+| Location | Role |
 |---|---|
-| `repos/tutotuto-app` | TutoTutoのフロントエンド |
-| `repos/home-teacher-api` | TutoTuto・DoriDoriの共有Express API |
-| `repos/home-teacher-common` | 共通UI・PDF表示・保存・認証 |
-| `repos/drawing-common` | 描画基盤 |
+| `repos/tutotuto-app` | TutoTuto frontend |
+| `repos/home-teacher-api` | Express API shared by TutoTuto and DoriDori |
+| `repos/home-teacher-common` | Shared UI, PDF display, storage, and authentication |
+| `repos/drawing-common` | Drawing infrastructure |
 
-APIのソースと公開元は独立した [home-teacher-api](https://github.com/ThousandsOfTies/home-teacher-api) です。
-DoriDoriの本文索引・読書機能とCopiCopiの模写評価は、それぞれのアプリで管理します。
+The API source and deployment are maintained in the separate [home-teacher-api](https://github.com/ThousandsOfTies/home-teacher-api) repository.
+DoriDori's text indexing and reading features and CopiCopi's drawing evaluation are maintained in their respective apps.
 
-## ローカル開発
+## Local development
 
-Node.js 20（フロントCIと同じ）、npm、Gitを使用します。Makeの利用にはGNU MakeとUnix系シェルが必要です。
+Use Node.js 20, matching the frontend CI, along with npm and Git. The Make commands require GNU Make and a Unix-like shell.
 
 ```bash
 git clone --recurse-submodules https://github.com/ThousandsOfTies/TutoTuto.git
@@ -39,25 +51,25 @@ cd TutoTuto
 make setup
 ```
 
-フロントの `repos/tutotuto-app/.env.local` に `VITE_FIREBASE_*` と `VITE_API_URL=http://localhost:3003` を設定します。
-APIは [設定例](https://github.com/ThousandsOfTies/home-teacher-api/blob/main/.env.example) を参考に `repos/home-teacher-api/.env` を用意します。APIキーはサーバー側のみ、ベースURL末尾に `/api` は付けません。
+Set `VITE_FIREBASE_*` and `VITE_API_URL=http://localhost:3003` in `repos/tutotuto-app/.env.local`.
+Create `repos/home-teacher-api/.env` using the API's [example configuration](https://github.com/ThousandsOfTies/home-teacher-api/blob/main/.env.example). Keep API keys on the server. Do not append `/api` to the API base URL.
 
-別々のターミナルで起動します。
+Start the frontend and API in separate terminals:
 
 ```bash
-make dev         # フロント: http://localhost:3000
-make dev-server  # 共有API: http://localhost:3003
+make dev         # Frontend: http://localhost:3000
+make dev-server  # Shared API: http://localhost:3003
 ```
 
-Makeなしの場合は、描画・共通UI・アプリで `npm install`、APIで `npm ci`、描画で `npm run build` を実行します。
-以降はアプリ内の `npm run dev:all` で両方を起動できます。アプリから起動する場合は従来の `server/.env` も互換用に読みます。PowerShellで `npm.ps1` が拒否される場合は `npm.cmd` を使用します。
+Without Make, run `npm install` in the drawing, shared UI, and app submodules, run `npm ci` in the API submodule, and run `npm run build` in the drawing submodule.
+Then run `npm run dev:all` in the app submodule to start both services. When started through the app, the API also reads the legacy app `server/.env` for compatibility. If PowerShell blocks `npm.ps1`, use `npm.cmd`.
 
-`make build` でフロントをビルドします。アプリ内では `npm run typecheck` と `npm test`、ビルド後は `npm run test:bundle` で確認できます。APIの検証はAPIリポジトリ内の `npm test` を使用します。
+Run `make build` to build the frontend. In the app submodule, use `npm run typecheck` and `npm test`, followed by `npm run test:bundle` after a build. Run the API's `npm test` in the API submodule.
 
-## 更新・公開
+## Updates and deployment
 
-サブリポジトリを先にcommit・pushし、その後このリポジトリのgitlinkを更新します。手順と翻訳ルールは [AGENTS.md](AGENTS.md) を参照してください。
-`make init` は固定コミットを復元し、`make update` は追従ブランチへ進めます。gitlink更新前の検証は各サブリポジトリで直接行います。
+Commit and push changes to each affected submodule before updating its gitlink in this repository. See [AGENTS.md (Japanese)](AGENTS.md) for the workflow and translation rules.
+`make init` restores pinned commits; `make update` advances submodules to their configured tracking branches. To validate a new submodule commit before updating its gitlink, run checks directly in that submodule.
 
-このリポジトリの `main` へのpushでGitHub Pagesへ公開します。共有Cloud Run APIはAPIリポジトリから別途公開します。
-サブモジュールの固定コミットと本番APIの版は別管理です。詳しくは [フロントのデプロイガイド](.agent/workflows/deployment.md) と [API公開手順](https://github.com/ThousandsOfTies/home-teacher-api/blob/main/DEPLOYMENT.md) を参照してください。
+Pushing to this repository's `main` branch deploys the frontend to GitHub Pages. The shared Cloud Run API is deployed separately from the API repository.
+The pinned submodule commits and the production API version are managed separately. See the [frontend deployment guide (Japanese)](.agent/workflows/deployment.md) and [API deployment guide](https://github.com/ThousandsOfTies/home-teacher-api/blob/main/DEPLOYMENT.md).
