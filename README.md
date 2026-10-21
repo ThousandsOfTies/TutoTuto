@@ -12,7 +12,7 @@ TutoTuto is a learning app that connects worksheet practice with time for social
 
 45 seconds · English · Music, no narration
 
-https://github.com/user-attachments/assets/b6708bcf-ff26-4f1a-acc9-ae3132a7d0cf
+https://github.com/user-attachments/assets/643d1f95-01b8-4056-b9c9-1ce8acca30cf
 
 [Try TutoTuto in your browser](https://thousandsofties.github.io/TutoTuto/)
 

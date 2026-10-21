@@ -12,7 +12,7 @@ TutoTutoは、いつもの教材での学習と、そのあとのSNSの時間を
 
 45秒・日本語・BGMあり／ナレーションなし
 
-https://github.com/user-attachments/assets/e3e5e44b-0f04-4b7f-ad7f-11ae12499324
+https://github.com/user-attachments/assets/a779a3cf-f6e8-4c13-8e36-324bc7d0883e
 
 [ブラウザーでTutoTutoを試す](https://thousandsofties.github.io/TutoTuto/)
 
