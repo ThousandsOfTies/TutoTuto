@@ -22,6 +22,7 @@ https://github.com/user-attachments/assets/643d1f95-01b8-4056-b9c9-1ce8acca30cf
 - **Write on your worksheets:** use handwriting or text input, switch between A/B pages, and work with a split view.
 - **Check answers with AI:** select the area containing the question and your answer, then review correctness and explanations.
 - **Ask follow-up questions:** ask about an explanation, branch a conversation, and revisit saved history. Markdown and mathematical notation are supported.
+- **Try without signing in:** grading and follow-up submissions share a browser-local allowance of 100 per month on Free or 500 on Premium. The remaining allowance is shown with the worksheet and resets on the first of each month, Japan time.
 - **Move from study to social time:** open configured social media links after grading and follow the countdown timer. The timer tracks time; it does not block other apps on your device.
 - **Choose your language:** the app supports English and Japanese, Google sign-in, and paid-plan integration.
 
