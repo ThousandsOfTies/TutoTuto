@@ -1,6 +1,11 @@
 {
     "models": [
         {
+            "id": "gemini-4-hydrogen",
+            "name": "Gemini 4 Hydrogen",
+            "description": "Gemini 4世代の推論モデル（Flashとの比較用）"
+        },
+        {
             "id": "gemini-3.8-flash",
             "name": "Gemini 3.8 Flash",
             "description": "最新世代・高速・高精度モデル（推奨）"
